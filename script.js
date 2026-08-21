@@ -39,16 +39,16 @@ async loadData() {
     } else {
       this.seedDemoData();
     }
-  }
-},
-
-async init() {
+  },
+ 
+    
+    async init() {
   await this.loadData();
   this.setupEventListeners();
   this.renderDashboard();
 },
   
-    },
+    
 
     seedDemoData() {
         this.products = [
