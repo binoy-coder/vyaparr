@@ -57,25 +57,23 @@ window.app = {
   },
 
   navigateTo(pageId) {
-    // Select all page containers in the body or main container
-    const sections = document.querySelectorAll('[data-page-content], .page-section, main > section, main > div');
-    
-    // Hide all view sections
-    sections.forEach(sec => {
-      sec.style.setProperty('display', 'none', 'important');
-    });
+    // Hide all main pages/sections cleanly
+    const allPages = document.querySelectorAll('.page, .page-section, section[id], main > div');
+    allPages.forEach(p => p.style.display = 'none');
 
-    // Locate target view by data attribute, ID, or class name
-    const target = document.querySelector(`[data-page-content="${pageId}"]`) ||
-                   document.getElementById(pageId) ||
-                   document.getElementById(`${pageId}-page`) ||
-                   document.querySelector(`.${pageId}-section`);
+    // Find and display active section
+    const target = document.getElementById(pageId) || 
+                   document.querySelector(`.${pageId}-page`) || 
+                   document.querySelector(`.${pageId}-section`) ||
+                   document.querySelector(`[data-page="${pageId}"]`);
 
     if (target) {
-      target.style.setProperty('display', 'block', 'important');
+      target.style.display = 'block';
+    } else {
+      console.warn(`Could not find section element for page: ${pageId}`);
     }
 
-    // Trigger section specific render routines
+    // Trigger tab-specific render methods
     if (pageId === 'dashboard') this.renderDashboard();
     if (pageId === 'inventory') this.renderInventory();
     if (pageId === 'customers') this.renderCustomers();
