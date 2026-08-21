@@ -10,7 +10,6 @@ window.app = {
       if (!response.ok) throw new Error('API server request failed');
       
       const liveData = await response.json();
-      
       if (Array.isArray(liveData)) {
         this.products = liveData;
       } else if (liveData && Array.isArray(liveData.products)) {
@@ -22,6 +21,8 @@ window.app = {
         const data = JSON.parse(saved);
         this.customers = data.customers || [];
         this.invoices = data.invoices || [];
+      } else {
+        this.seedDemoData();
       }
     } catch (error) {
       console.error('Error fetching backend data:', error);
@@ -80,18 +81,55 @@ window.app = {
     if (custEl) custEl.innerText = this.customers.length;
   },
 
-  renderInventory() {},
-  renderCustomers() {},
+  renderInventory() {
+    const tableBody = document.querySelector('#inventoryTable tbody');
+    if (!tableBody) return;
+    tableBody.innerHTML = this.products.map(p => `
+      <tr>
+        <td>${p.name || 'N/A'}</td>
+        <td>${p.sku || p.id || '-'}</td>
+        <td>₹${p.sellingPrice || p.price || 0}</td>
+        <td>${p.stock || 0}</td>
+      </tr>
+    `).join('');
+  },
+
+  renderCustomers() {
+    const tableBody = document.querySelector('#customersTable tbody');
+    if (!tableBody) return;
+    tableBody.innerHTML = this.customers.map(c => `
+      <tr>
+        <td>${c.name}</td>
+        <td>${c.mobile || '-'}</td>
+        <td>₹${c.outstandingBalance || 0}</td>
+      </tr>
+    `).join('');
+  },
+
   renderBilling() {},
-  renderInvoices() {},
+
+  renderInvoices() {
+    const tableBody = document.querySelector('#invoicesTable tbody');
+    if (!tableBody) return;
+    tableBody.innerHTML = this.invoices.map(inv => `
+      <tr>
+        <td>${inv.id}</td>
+        <td>${inv.customerName || 'Walk-in'}</td>
+        <td>₹${inv.total}</td>
+        <td>${inv.status}</td>
+        <td>${inv.date}</td>
+      </tr>
+    `).join('');
+  },
 
   seedDemoData() {
-    this.products = [
-      { id: 1, name: 'Thermal Barcode Scanner', hsn: '8471', sku: 'TBS-001', purchasePrice: 4500, sellingPrice: 6999, stock: 12, category: 'Hardware' },
-      { id: 2, name: 'Billing POS Printer', hsn: '8443', sku: 'BPP-001', purchasePrice: 8000, sellingPrice: 12999, stock: 3, category: 'Hardware' }
+    this.customers = [
+      { id: 1, name: 'Rahul Gupta', mobile: '+91 98765 43210', outstandingBalance: 5000 },
+      { id: 2, name: 'Anjali Paul', mobile: '+91 89765 43210', outstandingBalance: 0 }
     ];
-    this.customers = [];
-    this.invoices = [];
+    this.invoices = [
+      { id: 'INV-2024-001', customerName: 'Rahul Gupta', total: 8259, status: 'Paid', date: new Date().toISOString().split('T')[0] }
+    ];
   }
 };
 
