@@ -56,24 +56,26 @@ window.app = {
     });
   },
 
-  navigateTo(pageId) {
-    // Hide all main pages/sections cleanly
-    const allPages = document.querySelectorAll('.page, .page-section, section[id], main > div');
+navigateTo(pageId) {
+    // Hide all view sections
+    const allPages = document.querySelectorAll('.page, .page-section, .page-content, section, main > div');
     allPages.forEach(p => p.style.display = 'none');
 
-    // Find and display active section
+    // Find target section flexible by ID, class, or data attribute
     const target = document.getElementById(pageId) || 
-                   document.querySelector(`.${pageId}-page`) || 
-                   document.querySelector(`.${pageId}-section`) ||
-                   document.querySelector(`[data-page="${pageId}"]`);
+                   document.getElementById(`${pageId}-section`) ||
+                   document.querySelector(`.${pageId}`) ||
+                   document.querySelector(`.${pageId}-section`) || 
+                   document.querySelector(`.${pageId}-page`) ||
+                   document.querySelector(`[data-section="${pageId}"]`);
 
     if (target) {
       target.style.display = 'block';
     } else {
-      console.warn(`Could not find section element for page: ${pageId}`);
+      console.warn(`Section not found for: ${pageId}`);
     }
 
-    // Trigger tab-specific render methods
+    // Trigger tab render routines
     if (pageId === 'dashboard') this.renderDashboard();
     if (pageId === 'inventory') this.renderInventory();
     if (pageId === 'customers') this.renderCustomers();
