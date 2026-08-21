@@ -43,41 +43,45 @@ window.app = {
     });
   },
 
-  setupEventListeners() {
-    // Event delegation on document body to catch clicks even if DOM loaded early
+ setupEventListeners() {
     document.body.addEventListener('click', (e) => {
-      const link = e.target.closest('.nav-link, [data-page], nav a, .sidebar a');
-      if (link) {
+      const link = e.target.closest('.nav-link, [data-page], nav a, button[data-page]');
+      if (!link) return;
+      
+      const page = link.getAttribute('data-page') || link.getAttribute('href')?.replace('#', '');
+      if (page) {
         e.preventDefault();
-        const page = link.getAttribute('data-page') || link.getAttribute('href')?.replace('#', '');
-        if (page) this.navigateTo(page);
+        this.navigateTo(page);
       }
     });
   },
 
   navigateTo(pageId) {
-    // Hide all sections
-    document.querySelectorAll('main > div, main > section, .page-section, section').forEach(sec => {
-      sec.style.display = 'none';
+    // Select all page containers in the body or main container
+    const sections = document.querySelectorAll('[data-page-content], .page-section, main > section, main > div');
+    
+    // Hide all view sections
+    sections.forEach(sec => {
+      sec.style.setProperty('display', 'none', 'important');
     });
 
-    // Target active section
-    const target = document.getElementById(pageId) || 
-                   document.getElementById(`${pageId}-section`) || 
-                   document.querySelector(`.${pageId}-section`) ||
-                   document.querySelector(`[data-section="${pageId}"]`);
-                   
+    // Locate target view by data attribute, ID, or class name
+    const target = document.querySelector(`[data-page-content="${pageId}"]`) ||
+                   document.getElementById(pageId) ||
+                   document.getElementById(`${pageId}-page`) ||
+                   document.querySelector(`.${pageId}-section`);
+
     if (target) {
-      target.style.display = 'block';
+      target.style.setProperty('display', 'block', 'important');
     }
 
+    // Trigger section specific render routines
     if (pageId === 'dashboard') this.renderDashboard();
     if (pageId === 'inventory') this.renderInventory();
     if (pageId === 'customers') this.renderCustomers();
     if (pageId === 'billing') this.renderBilling();
     if (pageId === 'invoices') this.renderInvoices();
   },
-
   renderDashboard() {
     const totalRev = this.invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
     const lowStock = this.products.filter(p => (p.stock || 0) < 5).length;
