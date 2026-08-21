@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vyapar - Bharat's Smart Business Engine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <div class="logo">वायपार</div>
+            <div class="nav-tabs">
+                <button class="nav-btn active" data-tab="dashboard">📊 Dashboard</button>
+                <button class="nav-btn" data-tab="inventory">📦 Inventory</button>
+                <button class="nav-btn" data-tab="crm">👥 Customers</button>
+                <button class="nav-btn" data-tab="billing">💳 Billing</button>
+                <button class="nav-btn" data-tab="invoices">📄 Invoices</button>
+                <button class="nav-btn" data-tab="reports">📈 Reports</button>
+            </div>
+            <div class="profile-section">
+                <div class="profile-badge">Vyapar Solutions Pvt Ltd</div>
+            </div>
+        </div>
+
+        <div class="main-content" id="main-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-content" id="dashboard-tab">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Today's Revenue</div>
+                        <div class="kpi-value" id="todayRevenue">₹0.00</div>
+                        <div class="kpi-meta">Bills: <span id="todayBills">0</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Pending Receivables</div>
+                        <div class="kpi-value" id="pendingReceivables">₹0.00</div>
+                        <div class="kpi-meta">Outstanding</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Low Stock Items</div>
+                        <div class="kpi-value" id="lowStockCount">0</div>
+                        <div class="kpi-meta">Below 5 units</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Customers</div>
+                        <div class="kpi-value" id="totalCustomers">0</div>
+                        <div class="kpi-meta">Active</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="section-title">Daily Sales (7 Days)</div>
+                    <div class="mini-chart" id="dailyChart"></div>
+                </div>
+                <div class="section">
+                    <div class="section-title">Recent Invoices</div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentInvoices"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Tab -->
+            <div class="tab-content" id="inventory-tab" style="display:none;">
+                <div class="section">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div class="section-title" style="margin-bottom: 0;">Products</div>
+                        <button onclick="app.showAddProductModal()">+ Add</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <input type="text" id="searchProducts" placeholder="Search products..." style="grid-column: 1/-1;">
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>HSN</th>
+                                <th>SKU</th>
+                                <th>Buy Price</th>
+                                <th>Sell Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CRM Tab -->
+            <div class="tab-content" id="crm-tab" style="display:none;">
+                <div class="section">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div class="section-title" style="margin-bottom: 0;">Customers</div>
+                        <button onclick="app.showAddCustomerModal()">+ Add</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <input type="text" id="searchCustomers" placeholder="Search customers..." style="grid-column: 1/-1;">
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Mobile</th>
+                                <th>City/State</th>
+                                <th>Outstanding</th>
+                                <th>Total Purchased</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Billing Tab -->
+            <div class="tab-content" id="billing-tab" style="display:none;">
+                <div class="section">
+                    <div class="section-title">POS Billing Terminal</div>
+                </div>
+                <div class="form-row">
+                    <select id="billCustomer" onchange="app.selectBillCustomer()">
+                        <option value="">Select Customer</option>
+                    </select>
+                    <input type="text" id="billCustomerNew" placeholder="Or new customer">
+                </div>
+                <div class="form-row">
+                    <select id="billProduct" onchange="app.addBillItem()">
+                        <option value="">Add Product</option>
+                    </select>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>HSN</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Tax</th>
+                                <th>Total</th>
+                                <th>Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billItems"></tbody>
+                    </table>
+                </div>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 200px; gap: 32px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="color: var(--text-secondary);">Subtotal:</span>
+                                <span id="billSubtotal">₹0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="color: var(--text-secondary);">CGST (9%):</span>
+                                <span id="billCGST">₹0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                <span style="color: var(--text-secondary);">SGST (9%):</span>
+                                <span id="billSGST">₹0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: var(--accent-gold);">
+                                <span>Total:</span>
+                                <span id="billTotal">₹0.00</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 12px; font-size: 12px; color: var(--text-secondary); font-weight: 600;">Tax Type</label>
+                            <select id="billState" onchange="app.updateBillTax()">
+                                <option value="intrastate">Intrastate</option>
+                                <option value="interstate">Interstate</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button onclick="app.generateBill()">✓ Generate Bill</button>
+                    <button class="secondary" onclick="app.resetBill()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Invoices Tab -->
+            <div class="tab-content" id="invoices-tab" style="display:none;">
+                <div class="section">
+                    <div class="section-title">Invoice History</div>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Tax</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allInvoices"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div class="tab-content" id="reports-tab" style="display:none;">
+                <div class="section">
+                    <div class="section-title">Business Analytics</div>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Revenue</div>
+                        <div class="kpi-value" id="reportRevenue">₹0.00</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">GST Collected</div>
+                        <div class="kpi-value" id="reportGST">₹0.00</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Invoices</div>
+                        <div class="kpi-value" id="reportInvoices">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Avg Invoice</div>
+                        <div class="kpi-value" id="reportAvgInvoice">₹0.00</div>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-title">Top Products</div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Units</th>
+                                    <th>Revenue</th>
+                                    <th>% Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProducts"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addProductModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add Product</div>
+                <button class="close-btn" onclick="app.closeModal('addProductModal')">&times;</button>
+            </div>
+            <div class="form-row">
+                <input type="text" id="productName" placeholder="Item Name">
+                <input type="text" id="productHSN" placeholder="HSN Code">
+            </div>
+            <div class="form-row">
+                <input type="text" id="productSKU" placeholder="SKU">
+                <input type="number" id="productPurchasePrice" placeholder="Purchase Price" step="0.01">
+            </div>
+            <div class="form-row">
+                <input type="number" id="productSellingPrice" placeholder="Selling Price" step="0.01">
+                <input type="number" id="productStock" placeholder="Stock" step="1">
+            </div>
+            <div class="button-row">
+                <button onclick="app.saveProduct()">Save</button>
+                <button class="secondary" onclick="app.closeModal('addProductModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addCustomerModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add Customer</div>
+                <button class="close-btn" onclick="app.closeModal('addCustomerModal')">&times;</button>
+            </div>
+            <div class="form-row">
+                <input type="text" id="customerName" placeholder="Name">
+                <input type="tel" id="customerMobile" placeholder="Mobile">
+            </div>
+            <div class="form-row">
+                <input type="text" id="customerCity" placeholder="City">
+                <input type="text" id="customerState" placeholder="State">
+            </div>
+            <div class="button-row">
+                <button onclick="app.saveCustomer()">Add</button>
+                <button class="secondary" onclick="app.closeModal('addCustomerModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="invoiceViewModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Tax Invoice</div>
+                <button class="close-btn" onclick="app.closeModal('invoiceViewModal')">&times;</button>
+            </div>
+            <div id="invoicePreview" style="margin-bottom: 20px;"></div>
+            <div class="button-row">
+                <button onclick="window.print()">🖨️ Print</button>
+                <button class="secondary" onclick="app.closeModal('invoiceViewModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
