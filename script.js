@@ -8,21 +8,17 @@ window.app = {
     try {
       const response = await fetch('https://vyaparr.onrender.com/api/inventory');
       if (!response.ok) throw new Error('API server request failed');
-      
       const liveData = await response.json();
       if (Array.isArray(liveData)) {
         this.products = liveData;
       } else if (liveData && Array.isArray(liveData.products)) {
         this.products = liveData.products;
       }
-
       const saved = localStorage.getItem('vyaparData');
       if (saved) {
         const data = JSON.parse(saved);
         this.customers = data.customers || [];
         this.invoices = data.invoices || [];
-      } else {
-        this.seedDemoData();
       }
     } catch (error) {
       console.error('Error fetching backend data:', error);
@@ -45,7 +41,7 @@ window.app = {
   },
 
   setupEventListeners() {
-    const navLinks = document.querySelectorAll('.nav-link, [data-page]');
+    const navLinks = document.querySelectorAll('.nav-link, [data-page], nav a');
     navLinks.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -56,9 +52,18 @@ window.app = {
   },
 
   navigateTo(pageId) {
-    document.querySelectorAll('.page-section, section').forEach(sec => sec.style.display = 'none');
-    const target = document.getElementById(pageId) || document.querySelector(`.${pageId}-section`);
-    if (target) target.style.display = 'block';
+    document.querySelectorAll('main > div, section, .page-section').forEach(sec => {
+      sec.style.display = 'none';
+    });
+
+    const target = document.getElementById(pageId) || 
+                   document.getElementById(`${pageId}-section`) || 
+                   document.querySelector(`.${pageId}-section`) ||
+                   document.querySelector(`[data-section="${pageId}"]`);
+                   
+    if (target) {
+      target.style.display = 'block';
+    }
 
     if (pageId === 'dashboard') this.renderDashboard();
     if (pageId === 'inventory') this.renderInventory();
@@ -94,42 +99,16 @@ window.app = {
     `).join('');
   },
 
-  renderCustomers() {
-    const tableBody = document.querySelector('#customersTable tbody');
-    if (!tableBody) return;
-    tableBody.innerHTML = this.customers.map(c => `
-      <tr>
-        <td>${c.name}</td>
-        <td>${c.mobile || '-'}</td>
-        <td>₹${c.outstandingBalance || 0}</td>
-      </tr>
-    `).join('');
-  },
-
+  renderCustomers() {},
   renderBilling() {},
-
-  renderInvoices() {
-    const tableBody = document.querySelector('#invoicesTable tbody');
-    if (!tableBody) return;
-    tableBody.innerHTML = this.invoices.map(inv => `
-      <tr>
-        <td>${inv.id}</td>
-        <td>${inv.customerName || 'Walk-in'}</td>
-        <td>₹${inv.total}</td>
-        <td>${inv.status}</td>
-        <td>${inv.date}</td>
-      </tr>
-    `).join('');
-  },
+  renderInvoices() {},
 
   seedDemoData() {
-    this.customers = [
-      { id: 1, name: 'Rahul Gupta', mobile: '+91 98765 43210', outstandingBalance: 5000 },
-      { id: 2, name: 'Anjali Paul', mobile: '+91 89765 43210', outstandingBalance: 0 }
+    this.products = [
+      { id: 1, name: 'Thermal Barcode Scanner', hsn: '8471', sku: 'TBS-001', purchasePrice: 4500, sellingPrice: 6999, stock: 12, category: 'Hardware' }
     ];
-    this.invoices = [
-      { id: 'INV-2024-001', customerName: 'Rahul Gupta', total: 8259, status: 'Paid', date: new Date().toISOString().split('T')[0] }
-    ];
+    this.customers = [];
+    this.invoices = [];
   }
 };
 
