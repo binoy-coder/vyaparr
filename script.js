@@ -21,6 +21,8 @@ window.app = {
         const data = JSON.parse(saved);
         this.customers = data.customers || [];
         this.invoices = data.invoices || [];
+      } else {
+        this.seedDemoData();
       }
     } catch (error) {
       console.error('Error fetching backend data:', error);
@@ -43,12 +45,15 @@ window.app = {
     });
   },
 
- setupEventListeners() {
+  setupEventListeners() {
     document.body.addEventListener('click', (e) => {
-      const link = e.target.closest('.nav-link, [data-page], nav a, button[data-page]');
-      if (!link) return;
-      
-      const page = link.getAttribute('data-page') || link.getAttribute('href')?.replace('#', '');
+      const btn = e.target.closest('[data-page], .nav-link, nav div, nav span, nav button, nav a');
+      if (!btn) return;
+
+      const page = btn.getAttribute('data-page') || 
+                   btn.getAttribute('href')?.replace('#', '') ||
+                   btn.innerText.trim().toLowerCase().replace(/[^a-z]/g, '');
+
       if (page) {
         e.preventDefault();
         this.navigateTo(page);
@@ -56,32 +61,32 @@ window.app = {
     });
   },
 
-navigateTo(pageId) {
-    // Hide all view sections
-    const allPages = document.querySelectorAll('.page, .page-section, .page-content, section, main > div');
-    allPages.forEach(p => p.style.display = 'none');
+  navigateTo(pageId) {
+    // Hide all section views cleanly
+    const views = document.querySelectorAll('main > section, main > div, .page, .page-section, [data-page-content]');
+    views.forEach(v => v.style.display = 'none');
 
-    // Find target section flexible by ID, class, or data attribute
-    const target = document.getElementById(pageId) || 
+    // Find and display target section
+    const target = document.getElementById(pageId) ||
                    document.getElementById(`${pageId}-section`) ||
+                   document.querySelector(`[data-page-content="${pageId}"]`) ||
                    document.querySelector(`.${pageId}`) ||
-                   document.querySelector(`.${pageId}-section`) || 
-                   document.querySelector(`.${pageId}-page`) ||
-                   document.querySelector(`[data-section="${pageId}"]`);
+                   document.querySelector(`.${pageId}-section`);
 
     if (target) {
       target.style.display = 'block';
     } else {
-      console.warn(`Section not found for: ${pageId}`);
+      console.warn(`Target view container not found for page: ${pageId}`);
     }
 
-    // Trigger tab render routines
+    // Trigger section rendering logic
     if (pageId === 'dashboard') this.renderDashboard();
     if (pageId === 'inventory') this.renderInventory();
     if (pageId === 'customers') this.renderCustomers();
     if (pageId === 'billing') this.renderBilling();
     if (pageId === 'invoices') this.renderInvoices();
   },
+
   renderDashboard() {
     const totalRev = this.invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
     const lowStock = this.products.filter(p => (p.stock || 0) < 5).length;
@@ -97,7 +102,7 @@ navigateTo(pageId) {
   },
 
   renderInventory() {
-    const tableBody = document.querySelector('#inventoryTable tbody');
+    const tableBody = document.querySelector('#inventoryTable tbody') || document.querySelector('.inventory-table tbody');
     if (!tableBody) return;
     tableBody.innerHTML = this.products.map(p => `
       <tr>
@@ -109,20 +114,47 @@ navigateTo(pageId) {
     `).join('');
   },
 
-  renderCustomers() {},
-  renderBilling() {},
-  renderInvoices() {},
+  renderCustomers() {
+    const tableBody = document.querySelector('#customersTable tbody') || document.querySelector('.customers-table tbody');
+    if (!tableBody) return;
+    tableBody.innerHTML = this.customers.map(c => `
+      <tr>
+        <td>${c.name || 'N/A'}</td>
+        <td>${c.mobile || '-'}</td>
+        <td>₹${c.outstandingBalance || 0}</td>
+      </tr>
+    `).join('');
+  },
+
+  renderBilling() {
+    // Renders active billing interface state
+  },
+
+  renderInvoices() {
+    const tableBody = document.querySelector('#invoicesTable tbody') || document.querySelector('.invoices-table tbody');
+    if (!tableBody) return;
+    tableBody.innerHTML = this.invoices.map(inv => `
+      <tr>
+        <td>${inv.id}</td>
+        <td>${inv.customerName || 'Walk-in'}</td>
+        <td>₹${inv.total}</td>
+        <td>${inv.status}</td>
+        <td>${inv.date}</td>
+      </tr>
+    `).join('');
+  },
 
   seedDemoData() {
-    this.products = [
-      { id: 1, name: 'Thermal Barcode Scanner', hsn: '8471', sku: 'TBS-001', purchasePrice: 4500, sellingPrice: 6999, stock: 12, category: 'Hardware' }
+    this.customers = [
+      { id: 1, name: 'Rahul Gupta', mobile: '+91 98765 43210', outstandingBalance: 5000 },
+      { id: 2, name: 'Anjali Paul', mobile: '+91 89765 43210', outstandingBalance: 0 }
     ];
-    this.customers = [];
-    this.invoices = [];
+    this.invoices = [
+      { id: 'INV-2024-001', customerName: 'Rahul Gupta', total: 8259, status: 'Paid', date: new Date().toISOString().split('T')[0] }
+    ];
   }
 };
 
-// Immediate or DOMContentLoaded initialization
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => window.app.init());
 } else {
