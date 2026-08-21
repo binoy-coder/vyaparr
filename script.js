@@ -9,11 +9,13 @@ window.app = {
       const response = await fetch('https://vyaparr.onrender.com/api/inventory');
       if (!response.ok) throw new Error('API server request failed');
       const liveData = await response.json();
+      
       if (Array.isArray(liveData)) {
         this.products = liveData;
       } else if (liveData && Array.isArray(liveData.products)) {
         this.products = liveData.products;
       }
+
       const saved = localStorage.getItem('vyaparData');
       if (saved) {
         const data = JSON.parse(saved);
@@ -34,28 +36,32 @@ window.app = {
     }
   },
 
-  async init() {
-    await this.loadData();
+  init() {
     this.setupEventListeners();
-    this.renderDashboard();
+    this.loadData().then(() => {
+      this.renderDashboard();
+    });
   },
 
   setupEventListeners() {
-    const navLinks = document.querySelectorAll('.nav-link, [data-page], nav a');
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
+    // Event delegation on document body to catch clicks even if DOM loaded early
+    document.body.addEventListener('click', (e) => {
+      const link = e.target.closest('.nav-link, [data-page], nav a, .sidebar a');
+      if (link) {
         e.preventDefault();
         const page = link.getAttribute('data-page') || link.getAttribute('href')?.replace('#', '');
         if (page) this.navigateTo(page);
-      });
+      }
     });
   },
 
   navigateTo(pageId) {
-    document.querySelectorAll('main > div, section, .page-section').forEach(sec => {
+    // Hide all sections
+    document.querySelectorAll('main > div, main > section, .page-section, section').forEach(sec => {
       sec.style.display = 'none';
     });
 
+    // Target active section
     const target = document.getElementById(pageId) || 
                    document.getElementById(`${pageId}-section`) || 
                    document.querySelector(`.${pageId}-section`) ||
@@ -112,6 +118,9 @@ window.app = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+// Immediate or DOMContentLoaded initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => window.app.init());
+} else {
   window.app.init();
-});
+}
