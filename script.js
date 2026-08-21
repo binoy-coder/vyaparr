@@ -8,22 +8,44 @@ window.app = {
         state: 'intrastate'
     },
 
-    init() {
-        this.loadData();
-        this.setupEventListeners();
-        this.renderDashboard();
-    },
+    async init() {
+  await this.loadData();
+  this.setupEventListeners();
+  this.renderDashboard();
+},
 
-    loadData() {
-        const saved = localStorage.getItem('vyaparData');
-        if (saved) {
-            const data = JSON.parse(saved);
-            this.products = data.products || [];
-            this.customers = data.customers || [];
-            this.invoices = data.invoices || [];
-        } else {
-            this.seedDemoData();
-        }
+    async loadData() {
+  try {
+    // Fetch live inventory from your Render backend API
+    const response = await fetch('https://vyaparr.onrender.com/api/inventory');
+    if (!response.ok) throw new Error('API server request failed');
+    
+    const liveProducts = await response.json();
+    
+    // Set backend data to app products
+    this.products = liveProducts;
+    
+    // Fallback/load local storage for customers and invoices
+    const saved = localStorage.getItem('vyaparData');
+    if (saved) {
+      const data = JSON.parse(saved);
+      this.customers = data.customers || [];
+      this.invoices = data.invoices || [];
+    }
+  } catch (error) {
+    console.error('Error fetching backend data, falling back to localStorage:', error);
+    // Fallback to local storage if server is sleeping or offline
+    const saved = localStorage.getItem('vyaparData');
+    if (saved) {
+      const data = JSON.parse(saved);
+      this.products = data.products || [];
+      this.customers = data.customers || [];
+      this.invoices = data.invoices || [];
+    } else {
+      this.seedDemoData();
+    }
+  }
+},
     },
 
     seedDemoData() {
