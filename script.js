@@ -11,14 +11,12 @@ window.app = {
       
       const liveData = await response.json();
       
-      // Map live inventory data array
       if (Array.isArray(liveData)) {
         this.products = liveData;
       } else if (liveData && Array.isArray(liveData.products)) {
         this.products = liveData.products;
       }
 
-      // Load saved customers and invoices from localStorage
       const saved = localStorage.getItem('vyaparData');
       if (saved) {
         const data = JSON.parse(saved);
@@ -26,7 +24,7 @@ window.app = {
         this.invoices = data.invoices || [];
       }
     } catch (error) {
-      console.error('Error fetching backend data, falling back to localStorage:', error);
+      console.error('Error fetching backend data:', error);
       const saved = localStorage.getItem('vyaparData');
       if (saved) {
         const data = JSON.parse(saved);
@@ -45,20 +43,58 @@ window.app = {
     this.renderDashboard();
   },
 
+  setupEventListeners() {
+    const navLinks = document.querySelectorAll('.nav-link, [data-page]');
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = link.getAttribute('data-page') || link.getAttribute('href')?.replace('#', '');
+        if (page) this.navigateTo(page);
+      });
+    });
+  },
+
+  navigateTo(pageId) {
+    document.querySelectorAll('.page-section, section').forEach(sec => sec.style.display = 'none');
+    const target = document.getElementById(pageId) || document.querySelector(`.${pageId}-section`);
+    if (target) target.style.display = 'block';
+
+    if (pageId === 'dashboard') this.renderDashboard();
+    if (pageId === 'inventory') this.renderInventory();
+    if (pageId === 'customers') this.renderCustomers();
+    if (pageId === 'billing') this.renderBilling();
+    if (pageId === 'invoices') this.renderInvoices();
+  },
+
+  renderDashboard() {
+    const totalRev = this.invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+    const lowStock = this.products.filter(p => (p.stock || 0) < 5).length;
+    
+    const revEl = document.getElementById('todayRevenue');
+    if (revEl) revEl.innerText = `₹${totalRev.toFixed(2)}`;
+    
+    const stockEl = document.getElementById('lowStockCount');
+    if (stockEl) stockEl.innerText = lowStock;
+
+    const custEl = document.getElementById('totalCustomers');
+    if (custEl) custEl.innerText = this.customers.length;
+  },
+
+  renderInventory() {},
+  renderCustomers() {},
+  renderBilling() {},
+  renderInvoices() {},
+
   seedDemoData() {
     this.products = [
       { id: 1, name: 'Thermal Barcode Scanner', hsn: '8471', sku: 'TBS-001', purchasePrice: 4500, sellingPrice: 6999, stock: 12, category: 'Hardware' },
-      { id: 2, name: 'Billing POS Printer', hsn: '8443', sku: 'BPP-001', purchasePrice: 8000, sellingPrice: 12999, stock: 3, category: 'Hardware' },
-      { id: 3, name: 'Label Roll Pack', hsn: '4821', sku: 'LRP-001', purchasePrice: 150, sellingPrice: 249, stock: 45, category: 'Consumables' },
-      { id: 4, name: 'Cash Drawer', hsn: '8303', sku: 'CD-001', purchasePrice: 3500, sellingPrice: 5499, stock: 2, category: 'Hardware' }
+      { id: 2, name: 'Billing POS Printer', hsn: '8443', sku: 'BPP-001', purchasePrice: 8000, sellingPrice: 12999, stock: 3, category: 'Hardware' }
     ];
-    this.customers = [
-      { id: 1, name: 'Rahul Gupta', mobile: '+91 98765 43210', city: 'Mumbai', state: 'Maharashtra', outstandingBalance: 5000, totalPurchased: 25000 },
-      { id: 2, name: 'Anjali Paul', mobile: '+91 89765 43210', city: 'New Delhi', state: 'Delhi', outstandingBalance: 0, totalPurchased: 18500 },
-      { id: 3, name: 'Vikram Sarin', mobile: '+91 79765 43210', city: 'Bengaluru', state: 'Karnataka', outstandingBalance: 12000, totalPurchased: 45000 }
-    ];
-    this.invoices = [
-      { id: 'INV-2024-001', customerId: 1, customerName: 'Rahul Gupta', items: [{ productId: 1, name: 'Thermal Barcode Scanner', qty: 1, price: 6999, hsn: '8471' }], subtotal: 6999, cgst: 630, sgst: 630, igst: 0, total: 8259, status: 'Paid', date: new Date().toISOString().split('T')[0], state: 'intrastate' }
-    ];
+    this.customers = [];
+    this.invoices = [];
   }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.app.init();
+});
