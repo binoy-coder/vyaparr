@@ -47,39 +47,42 @@ window.app = {
 
   setupEventListeners() {
     document.body.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-page], .nav-link, nav div, nav span, nav button, nav a');
+      const btn = e.target.closest('[data-page], .nav-btn, nav button');
       if (!btn) return;
 
-      const page = btn.getAttribute('data-page') || 
-                   btn.getAttribute('href')?.replace('#', '') ||
-                   btn.innerText.trim().toLowerCase().replace(/[^a-z]/g, '');
-
+      const page = btn.getAttribute('data-page');
       if (page) {
         e.preventDefault();
+        
+        // Update active tab button highlight
+        document.querySelectorAll('nav .nav-btn').forEach(b => {
+          b.classList.remove('bg-slate-700', 'text-white');
+          b.classList.add('text-slate-300');
+        });
+        btn.classList.add('bg-slate-700', 'text-white');
+        btn.classList.remove('text-slate-300');
+
         this.navigateTo(page);
       }
     });
   },
 
   navigateTo(pageId) {
-    // Hide all section views cleanly
-    const views = document.querySelectorAll('main > section, main > div, .page, .page-section, [data-page-content]');
-    views.forEach(v => v.style.display = 'none');
+    // Hide all view sections
+    const views = document.querySelectorAll('main .page-section');
+    views.forEach(v => {
+      v.style.display = 'none';
+    });
 
-    // Find and display target section
-    const target = document.getElementById(pageId) ||
-                   document.getElementById(`${pageId}-section`) ||
-                   document.querySelector(`[data-page-content="${pageId}"]`) ||
-                   document.querySelector(`.${pageId}`) ||
-                   document.querySelector(`.${pageId}-section`);
-
+    // Show selected view section
+    const target = document.getElementById(pageId);
     if (target) {
       target.style.display = 'block';
     } else {
-      console.warn(`Target view container not found for page: ${pageId}`);
+      console.warn(`Target view container not found for page ID: ${pageId}`);
     }
 
-    // Trigger section rendering logic
+    // Trigger tab specific renders
     if (pageId === 'dashboard') this.renderDashboard();
     if (pageId === 'inventory') this.renderInventory();
     if (pageId === 'customers') this.renderCustomers();
@@ -102,7 +105,7 @@ window.app = {
   },
 
   renderInventory() {
-    const tableBody = document.querySelector('#inventoryTable tbody') || document.querySelector('.inventory-table tbody');
+    const tableBody = document.querySelector('#inventoryTable tbody');
     if (!tableBody) return;
     tableBody.innerHTML = this.products.map(p => `
       <tr>
@@ -115,7 +118,7 @@ window.app = {
   },
 
   renderCustomers() {
-    const tableBody = document.querySelector('#customersTable tbody') || document.querySelector('.customers-table tbody');
+    const tableBody = document.querySelector('#customersTable tbody');
     if (!tableBody) return;
     tableBody.innerHTML = this.customers.map(c => `
       <tr>
@@ -126,12 +129,10 @@ window.app = {
     `).join('');
   },
 
-  renderBilling() {
-    // Renders active billing interface state
-  },
+  renderBilling() {},
 
   renderInvoices() {
-    const tableBody = document.querySelector('#invoicesTable tbody') || document.querySelector('.invoices-table tbody');
+    const tableBody = document.querySelector('#invoicesTable tbody');
     if (!tableBody) return;
     tableBody.innerHTML = this.invoices.map(inv => `
       <tr>
